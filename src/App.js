@@ -8,8 +8,7 @@ import {
 } from 'react-router-dom';
 import SecureRoute from './components/SecureRoute';
 import SignIn from './pages/user/SignIn';
-import Habits from './pages/activity/Activity.List';
-import { userContext } from './Context';
+import Activity from './pages/activity/Activity.List';
 
 function App() {
   return (
@@ -23,7 +22,7 @@ function App() {
         </ul>
         <Switch>
           <Route path='/signIn'><SignIn /></Route>
-          <Route path='/activities'><Habits /></Route>
+          <Route path='/activities'><Activity /></Route>
           <SecureRoute path='/' />
       </Switch>
       </Router>

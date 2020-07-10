@@ -1,16 +1,18 @@
 import React from 'react';
 import Config from '../../config';
 
-export default class CreateActivity extends React.Component
+export default class ActivityForm extends React.Component
 {
-    constructor()
+    constructor(props)
     {
-        super();
+        super(props);
         this.state = 
         {
-            activity: '',
-            description: '',
-            duration: '',
+            action: props.action,
+            activity: props.activity,
+            description: props.description,
+            duration: props.duration,
+            message: '',
         }
     }
 
@@ -51,7 +53,12 @@ export default class CreateActivity extends React.Component
             return response.json();
         })
         .then((result) => {
-            return console.log('Result: ', result);
+            if(result.status !== 200)
+            {
+                return ('Fetch result unsuccessful: ', result);
+            }
+            this.setState({message:`New activity created:  ${result}`})
+            return(console.log('Fetch result a success! ', result));
         })
         .catch((err) => {
             if(err)
@@ -65,7 +72,7 @@ export default class CreateActivity extends React.Component
     {
         return(
             <div>
-                <h3>Add new activity:</h3>
+                <h3>{this.state.action}:</h3>
                 <form className='create-habit-form' onSubmit={this.handleNewActivity}>
                     <ul>
                         <label htmlFor='activity'>New Activity</label>

@@ -1,6 +1,8 @@
 import React from 'react';
 import Config from '../../config';
-import NewHabit from './Activity.Create';
+import Form from './Activity.Form';
+
+// const ActvContext = React.createContext({})
 
 function ActivityItem (props)
 {
@@ -13,13 +15,17 @@ function ActivityItem (props)
     )
 }
 
-export default class HabitList extends React.Component
+export default class List extends React.Component
 {
     constructor(props)
     {
         super(props);
         this.state = {
             activities: [],
+            action:'Create',
+            activity: '',
+            description:'',
+            duration:'',
         }
     }
     getActivityList = async () =>
@@ -33,10 +39,11 @@ export default class HabitList extends React.Component
         .then((result) => 
         {
             this.setState({
-                activities: result.map((item) =>
+                activities: result.map((item, i) =>
                 {
                     return <ActivityItem
                         key={item._id} 
+                        index={i}
                         // why didn't this work but id did when sending it through props
                         id={item._id}
                         activity={item.activity}
@@ -89,13 +96,7 @@ export default class HabitList extends React.Component
         })
     }
 
-    
     componentDidMount()
-    {
-        this.getActivityList();
-    }
-
-    componentWillUnmount()
     {
         this.getActivityList();
     }
@@ -104,10 +105,17 @@ export default class HabitList extends React.Component
     {
         return(
             <div>
-                <NewHabit />
-                <ul>
-                    {this.state.activities}
-                </ul>  
+                {/* <ActvContext.Provider value={this.state}> */}
+                    <Form
+                        action={this.state.action === "Create"? "Create a new Activity": "Update activity"}
+                        activity={this.state.activity}
+                        description={this.state.description}
+                        duration={this.state.duration}
+                        getList={this.getActivityList} />
+                    <ul>
+                        {this.state.activities}
+                    </ul>  
+                {/* </ActvContext.Provider> */}
             </div>
             
         )
