@@ -3,9 +3,9 @@ import Config from '../../config';
 
 export default class CreateActivity extends React.Component
 {
-    constructor()
+    constructor(props)
     {
-        super();
+        super(props);
         this.state = 
         {
             activity: '',

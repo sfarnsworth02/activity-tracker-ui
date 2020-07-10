@@ -1,25 +1,89 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Config from '../../config';
-import NewHabit from './Activity.Create';
+import { render } from 'node-sass';
+// import NewActivity from './Activity.Create';
+
+const ActionContext = React.createContext({});
 
 function ActivityItem (props)
 {
     return(
         <li>
             <span> {props.activity} </span>
-            <button onClick={props.editActivity}>Edit</button>
+            <button onClick={props.editActivity} item={props.index}>Edit</button>
             <button onClick={props.deleteActivity} item={props.id}>Delete</button>
         </li>
     )
 }
 
-export default class HabitList extends React.Component
+class ActivityForm extends React.Component
+{
+    constructor(props)
+    {
+        super(props);
+        this.state = {
+            activity: '',
+            description: '',
+            duration: '', 
+        }
+    }
+    handleChange = (e) =>
+    {
+        e.preventDefault();
+        let fieldName = e.target.getAttribute('name');
+        const activityObj = {};
+        activityObj[fieldName] = e.target.value;
+        this.setState(activityObj);
+        console.log('activity object is: ', activityObj)
+    }
+    render()
+    {
+        return(
+            <div>
+                <h3>{this.context.action}:</h3>
+                <form className='create-habit-form' onSubmit={this.props.NewActivity}>
+                    <ul>
+                        <label htmlFor='activity'>New Activity</label>
+                        <input 
+                            type='text'
+                            name='activity'
+                            value={this.state.activity}
+                            onChange={this.handleChange} />
+                        <label htmlFor='description'>Description</label>
+                        <input 
+                            type='text'
+                            name='description'
+                            value={this.state.description}
+                            onChange={this.handleChange} />
+                        <label htmlFor='duration'>Duration</label>
+                        <input 
+                            type='number'
+                            name='duration'
+                            value={this.state.duration}
+                            onChange={this.handleChange} />
+                        <input type='submit' />
+                    </ul>
+                </form>
+            </div>
+        )
+    }
+    
+}
+ActivityForm.contextType = ActionContext;
+export default class ActivityList extends React.Component
 {
     constructor(props)
     {
         super(props);
         this.state = {
             activities: [],
+            id:'',
+            activity:'',
+            description:'',
+            duration:'',
+            action:'Create',
+            activity:{},
+            data:[],
         }
     }
     getActivityList = async () =>
@@ -32,12 +96,15 @@ export default class HabitList extends React.Component
         })
         .then((result) => 
         {
+            // need to be able to call this from the Activity.Create.js file...not sure if I set the structure correctly for this
             this.setState({
-                activities: result.map((item) =>
+                data:result,
+                activities: result.map((item, i) =>
                 {
                     return <ActivityItem
                         key={item._id} 
-                        // why didn't this work but id did when sending it through props
+                        index={i}
+                        // why didn't the key attribute work but id did when sending it through props
                         id={item._id}
                         activity={item.activity}
                         description={item.description}
@@ -50,11 +117,52 @@ export default class HabitList extends React.Component
             })
         })
     }
+    NewActivity = (e) =>
+    {
+        e.preventDefault();
+        let path = Config.basePath;
+        let body = ['activity', 'description', 'duration'];
+        let dataBody = {};
+        for (let i=0; i<body.length; i++)
+        {
+            const field = body[i];
+            dataBody[field] = this.state[field];
+        };
+        console.log('dataBody: ', dataBody);
+        let fetchOptions = {
+            headers: { 'Content-Type':'application/json' },
+            method: 'POST',
+            mode: 'cors',
+            body: JSON.stringify(dataBody)
+        };
+        let activityUrl = `${path}/activity`;
+        fetch(activityUrl, fetchOptions)
+        .then((response) => {
+            if(response.status !== 200)
+            {
+                return ('Fetch response unsuccessful: ', response)
+            }
+            return response.json();
+        })
+        .then((result) => {
+            return console.log('Result: ', result);
+        })
+        .catch((err) => {
+            if(err)
+            {
+                console.log('Catching fetch error: ', err);
+            }
+        });
+    }    
     editActivity = (e) =>
     {
-
+        e.preventDefault();
+        let id = e.target.getAttribute('item');
+        let item = this.state.data[id];
+        console.log('item: ', item);
+        this.setState({activity: item, action:'edit'});
+        return console.log('edit event: ', id);
     }
-
     deleteActivity = (e) =>
     {
         e.preventDefault();
@@ -89,7 +197,6 @@ export default class HabitList extends React.Component
         })
     }
 
-    
     componentDidMount()
     {
         this.getActivityList();
@@ -104,10 +211,14 @@ export default class HabitList extends React.Component
     {
         return(
             <div>
-                <NewHabit />
-                <ul>
-                    {this.state.activities}
-                </ul>  
+                <ActionContext.Provider value={this.state}>
+                    {/* <NewActivity /> */}
+                    <ActivityForm />
+                    <ul>
+                        {this.state.activities}
+                    </ul>  
+                </ActionContext.Provider>
+                
             </div>
             
         )
